@@ -33,6 +33,17 @@ module.exports = function(stateValues, events) {
       rowIdx: 0,
       idx: 0
     },
+    selectedRange: {
+      topLeft: {
+        rowIdx: 0,
+        idx: 0
+      },
+      bottomRight: {
+        rowIdx: 0,
+        idx: 0
+      }
+    },
+    selecting: { inProgress: false },
     copied: null,
     canFilter: false,
     expandedRows: [],

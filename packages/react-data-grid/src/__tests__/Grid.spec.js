@@ -49,7 +49,6 @@ describe('Base Grid Tests', () => {
     onViewportKeydown: function() {},
     onViewportDragStart: function() {},
     onViewportDragEnd: function() {},
-    onViewportDoubleClick: function() {}
   };
 
   // Configure local letiable replacements for the module.
@@ -76,16 +75,7 @@ describe('Base Grid Tests', () => {
     expect(testProps.onViewportKeydown).toHaveBeenCalled();
   });
 
-  it('doubleclick in viewport should call props.onViewportDoubleClick', () => {
-    let viewportContainerNode;
-    spyOn(testProps, 'onViewportDoubleClick');
-    testElement = TestUtils.renderIntoDocument(<Grid {...testProps}/>);
-    viewportContainerNode = ReactDOM.findDOMNode(testElement.viewPortContainer);
-    TestUtils.Simulate.doubleClick(viewportContainerNode);
-    expect(testProps.onViewportDoubleClick).toHaveBeenCalled();
-  });
-
-  it('dragstart in viewport should call props.onViewportDoubleClick', () => {
+  it('dragstart in viewport should call props.onViewportDragStart', () => {
     let viewportContainerNode;
     spyOn(testProps, 'onViewportDragStart');
     testElement = TestUtils.renderIntoDocument(<Grid {...testProps}/>);
@@ -125,8 +115,7 @@ describe('Empty Grid Tests', () => {
     emptyRowsView: EmptyRowsView,
     onViewportKeydown: () => {},
     onViewportDragStart: () => {},
-    onViewportDragEnd: () => {},
-    onViewportDoubleClick: () => {}
+    onViewportDragEnd: () => {}
   };
   rewireModule(Grid, {
     Header: HeaderStub
@@ -179,7 +168,6 @@ describe('Rendering Grid component', () => {
       onViewportKeyup: jasmine.createSpy(),
       onViewportDragStart: jasmine.createSpy(),
       onViewportDragEnd: jasmine.createSpy(),
-      onViewportDoubleClick: jasmine.createSpy(),
       onColumnResize: jasmine.createSpy(),
       onSort: jasmine.createSpy(),
       cellMetaData: {
@@ -239,7 +227,6 @@ describe('Rendering Grid component', () => {
     expect(draggableDiv.props().onViewportKeyup).toBeUndefined();
     expect(draggableDiv.props().onViewportDragStart).toBeUndefined();
     expect(draggableDiv.props().onViewportDragEnd).toBeUndefined();
-    expect(draggableDiv.props().onViewportDoubleClick).toBeUndefined();
     expect(draggableDiv.props().onColumnResize).toBeUndefined();
     expect(draggableDiv.props().onSort).toBeUndefined();
     expect(draggableDiv.props().cellMetaData).toBeUndefined();

@@ -77,11 +77,6 @@ type: `func`
 type: `func`
 
 
-### `onViewportDoubleClick` (required)
-
-type: `func`
-
-
 ### `onViewportDragEnd` (required)
 
 type: `func`

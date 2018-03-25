@@ -10,7 +10,7 @@ function doesRowContainSelectedCell(props) {
 
 function doesSelectedRangeContainRow(props) {
   const selectedRange = props.cellMetaData.selectedRange;
-  return selectedRange.topLeft.rowIdx <= props.idx && props.idx <= selectedRange.bottomRight.rowIdx;
+  return selectedRange && selectedRange.topLeft.rowIdx <= props.idx && props.idx <= selectedRange.bottomRight.rowIdx;
 }
 
 function willRowBeDraggedOver(props) {

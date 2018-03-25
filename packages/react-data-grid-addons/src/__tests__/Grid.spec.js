@@ -872,13 +872,10 @@ describe('Grid', function() {
         this.component.setState({ selected: { idx: 1, rowIdx: 1 } });
       });
 
-      it('should deselect currently selected cell on click', function() {
-        this.getBaseGrid().props.onViewportClick();
-        expect(this.component.state.selected).toEqual(jasmine.objectContaining({ idx: -1, rowIdx: -1 }));
-      });
-
-      it('should deselect currently selected cell on double-click', function() {
-        this.getBaseGrid().props.onViewportDoubleClick();
+      it('should deselect currently selected cell on mouseup', function() {
+        const evt = document.createEvent('Events');
+        evt.initEvent('mouseup', true, true);
+        window.dispatchEvent(evt);
         expect(this.component.state.selected).toEqual(jasmine.objectContaining({ idx: -1, rowIdx: -1 }));
       });
     });

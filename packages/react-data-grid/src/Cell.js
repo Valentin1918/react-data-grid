@@ -212,7 +212,8 @@ class Cell extends React.Component {
   };
 
   isWithinSelectedRange = (props) => {
-    return props.cellMetaData.selectedRange.topLeft.idx <= props.idx &&
+    return props.cellMetaData && props.cellMetaData.selectedRange &&
+        props.cellMetaData.selectedRange.topLeft.idx <= props.idx &&
         props.idx <= props.cellMetaData.selectedRange.bottomRight.idx &&
         props.cellMetaData.selectedRange.topLeft.rowIdx <= props.rowIdx &&
         props.rowIdx <= props.cellMetaData.selectedRange.bottomRight.rowIdx;
