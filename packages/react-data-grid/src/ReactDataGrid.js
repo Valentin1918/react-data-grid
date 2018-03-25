@@ -150,11 +150,13 @@ class ReactDataGrid extends React.Component {
   constructor(props, context) {
     super(props, context);
     let columnMetrics = this.createColumnMetrics();
-    let initialState = {columnMetrics, selectedRows: [], copied: null, expandedRows: [], canFilter: false, columnFilters: {}, sortDirection: null, sortColumn: null, dragged: null, scrollOffset: 0, lastRowIdxUiSelected: -1};
+    let initialState = {columnMetrics, selectedRows: [], copied: null, expandedRows: [], canFilter: false, columnFilters: {}, sortDirection: null, sortColumn: null, dragged: null, scrollOffset: 0, lastRowIdxUiSelected: -1, selecting: {inProgress: false}};
     if (props.enableCellSelect) {
       initialState.selected = {rowIdx: 0, idx: 0};
+      initialState.selectedRange = {topLeft: {rowIdx: 0, idx: 0}, bottomRight: {rowIdx: 0, idx: 0}};
     } else {
       initialState.selected = {rowIdx: -1, idx: -1};
+      initialState.selectedRange = {topLeft: {rowIdx: -1, idx: -1}, bottomRight: {rowIdx: -1, idx: -1}};
     }
     this.state = initialState;
   }
@@ -166,15 +168,23 @@ class ReactDataGrid extends React.Component {
   componentDidMount() {
     if (window.addEventListener) {
       window.addEventListener('resize', this.metricsUpdated);
+      window.addEventListener('mouseup', this.onWindowMouseUp);
     } else {
       window.attachEvent('resize', this.metricsUpdated);
+      window.attachEvent('mouseup', this.onWindowMouseUp);
     }
     this.metricsUpdated();
   }
 
   componentWillUnmount() {
     this._mounted = false;
-    window.removeEventListener('resize', this.metricsUpdated);
+    if (window.removeEventListener) {
+      window.removeEventListener('resize', this.metricsUpdated);
+      window.removeEventListener('mouseup', this.onWindowMouseUp);
+    } else {
+      window.detachEvent('resize', this.metricsUpdated);
+      window.detachEvent('mouseup', this.onWindowMouseUp);
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -339,7 +349,7 @@ class ReactDataGrid extends React.Component {
       let rowIdx = selected.rowIdx;
       if (this.isCellWithinBounds(selected)) {
         const oldSelection = this.state.selected;
-        this.setState({selected: selected}, () => {
+        this.setState({selected: selected, selectedRange: {topLeft: selected, bottomRight: selected}}, () => {
           if (typeof this.props.onCellDeSelected === 'function') {
             this.props.onCellDeSelected(oldSelection);
           }
@@ -349,8 +359,51 @@ class ReactDataGrid extends React.Component {
         });
       } else if (rowIdx === -1 && idx === -1) {
         // When it's outside of the grid, set rowIdx anyway
-        this.setState({selected: { idx, rowIdx }});
+        this.setState({selected: { idx, rowIdx }, selectedRange: {topLeft: { idx, rowIdx }, bottomRight: { idx, rowIdx }}});
       }
+    }
+  };
+
+  selectStart = (cell: SelectedType) => {
+    // qq check isCellWithinBounds?
+    this.setState({
+      selecting: {
+        inProgress: true,
+        startCell: cell
+      },
+      selectedRange: {topLeft: cell, bottomRight: cell}
+    });
+  };
+
+  selectUpdate = (cell: SelectedType) => {
+    const startCell = this.state.selecting.startCell;
+    const colIdxs = [startCell.idx, cell.idx].sort((a, b) => a - b);
+    const rowIdxs = [startCell.rowIdx, cell.rowIdx].sort((a, b) => a - b);
+    const topLeft = {idx: colIdxs[0], rowIdx: rowIdxs[0]};
+    const bottomRight = {idx: colIdxs[1], rowIdx: rowIdxs[1]};
+    this.setState({selectedRange: {topLeft, bottomRight}});
+  };
+
+  selectEnd = () => {
+    this.setState({selecting: {inProgress: false}});
+  };
+
+  onCellMouseDown = (cell: SelectedType) => {
+    this.selectStart(cell);
+  };
+
+  onCellMouseEnter = (cell: SelectedType) => {
+    if (!this.state.selecting.inProgress) {
+      return;
+    }
+    this.selectUpdate(cell);
+  };
+
+  onWindowMouseUp = () => {
+    if (!this.state.selecting.inProgress) {
+      this.deselect();
+    } else {
+      this.selectEnd();
     }
   };
 
@@ -629,7 +682,7 @@ class ReactDataGrid extends React.Component {
   handleDragStart = (dragged: DraggedType) => {
     if (!this.dragEnabled()) { return; }
     if (this.isCellWithinBounds(dragged)) {
-      this.setState({ dragged: dragged });
+      this.setState({ dragged: dragged, selecting: {inProgress: false} });
     }
   };
 
@@ -1075,7 +1128,15 @@ class ReactDataGrid extends React.Component {
 
   deselect = () => {
     const selected = {rowIdx: -1, idx: -1};
-    this.setState({selected});
+    const selectedRange = {topLeft: {rowIdx: -1, idx: -1}, bottomRight: {rowIdx: -1, idx: -1}};
+
+    const oldSelection = this.state.selected;
+    this.setState({selected, selectedRange}, () => {
+      if (typeof this.props.onCellDeSelected === 'function') {
+        this.props.onCellDeSelected(oldSelection);
+      }
+      // qq fire similar event for range deselected?
+    });
   };
 
   setActive = (keyPressed: string) => {
@@ -1178,9 +1239,12 @@ class ReactDataGrid extends React.Component {
     let cellMetaData = {
       rowKey: this.props.rowKey,
       selected: this.state.selected,
+      selectedRange: this.state.selectedRange,
       dragged: this.state.dragged,
       hoveredRowIdx: this.state.hoveredRowIdx,
       onCellClick: this.onCellClick,
+      onCellMouseDown: this.onCellMouseDown,
+      onCellMouseEnter: this.onCellMouseEnter,
       onCellFocus: this.onCellFocus,
       onCellContextMenu: this.onCellContextMenu,
       onCellDoubleClick: this.onCellDoubleClick,
@@ -1246,8 +1310,6 @@ class ReactDataGrid extends React.Component {
             onViewportKeyup={this.onKeyUp}
             onViewportDragStart={this.onDragStart}
             onViewportDragEnd={this.handleDragEnd}
-            onViewportClick={this.deselect}
-            onViewportDoubleClick={this.deselect}
             onColumnResize={this.onColumnResize}
             rowScrollTimeout={this.props.rowScrollTimeout}
             scrollToRowIndex={this.props.scrollToRowIndex}

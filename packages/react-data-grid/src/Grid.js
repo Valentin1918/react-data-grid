@@ -152,7 +152,8 @@ class Grid extends React.Component {
               onClick={this.props.onViewportClick}
               onDoubleClick={this.props.onViewportDoubleClick}
               onDragStart={this.props.onViewportDragStart}
-              onDragEnd={this.props.onViewportDragEnd}>
+              onDragEnd={this.props.onViewportDragEnd}
+            >
                 <Viewport
                   ref={(node) => { this.viewport = node; } }
                   rowKey={this.props.rowKey}
