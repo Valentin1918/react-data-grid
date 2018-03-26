@@ -13,16 +13,6 @@ function isWithinSelectedRange(props) {
   return selectedRange && selectedRange.topLeft.rowIdx <= props.idx && props.idx <= selectedRange.bottomRight.rowIdx;
 }
 
-function doesInProgressSelectedRangeContainRow(props) {
-  const inSelectedRange = isWithinSelectedRange(props);
-  const inProgress = props.cellMetaData.selecting && props.cellMetaData.selecting.inProgress;
-  return inProgress && inSelectedRange;
-}
-
-function isWithinSelectedRangeChanging(nextProps, currentProps) {
-  return isWithinSelectedRange(nextProps) !== isWithinSelectedRange(currentProps);
-}
-
 function willRowBeDraggedOver(props) {
   let dragged = props.cellMetaData.dragged;
   return dragged != null && (dragged.rowIdx >= 0 || dragged.complete === true);
@@ -37,9 +27,8 @@ export const shouldRowUpdate = (nextProps, currentProps) => {
   return !(ColumnMetrics.sameColumns(currentProps.columns, nextProps.columns, ColumnMetrics.sameColumn)) ||
     doesRowContainSelectedCell(currentProps) ||
     doesRowContainSelectedCell(nextProps) ||
-    doesInProgressSelectedRangeContainRow(currentProps) ||
-    doesInProgressSelectedRangeContainRow(nextProps) ||
-    isWithinSelectedRangeChanging(nextProps, currentProps) ||
+    isWithinSelectedRange(currentProps) ||
+    isWithinSelectedRange(nextProps) ||
     willRowBeDraggedOver(nextProps) ||
     nextProps.row !== currentProps.row ||
     currentProps.colDisplayStart !== nextProps.colDisplayStart ||

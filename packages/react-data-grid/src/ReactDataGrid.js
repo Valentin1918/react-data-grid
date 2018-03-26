@@ -8,7 +8,7 @@ const KeyCodes = require('./KeyCodes');
 const isFunction = require('./utils/isFunction');
 import SelectAll from './formatters/SelectAll';
 import AppConstants from './AppConstants';
-import { isKeyPrintable, isCtrlKeyHeldDown } from './utils/keyboardUtils';
+import { isKeyPrintable, isCtrlKeyHeldDown, isShiftKeyHeldDown } from './utils/keyboardUtils';
 const ColumnMetrics        = require('./ColumnMetrics');
 require('../../../themes/react-data-grid-core.css');
 require('../../../themes/react-data-grid-checkbox.css');
@@ -264,7 +264,7 @@ class ReactDataGrid extends React.Component {
 
   onKeyDown = (e: SyntheticKeyboardEvent) => {
     if (isCtrlKeyHeldDown(e)) {
-      this.checkAndCall('onPressKeyWithCtrl', e);
+      this.onPressKeyWithCtrl(e);
     } else if (this.isKeyExplicitlyHandled(e.key)) {
       // break up individual keyPress events to have their own specific callbacks
       let callBack = 'onPress' + e.key;
@@ -376,16 +376,38 @@ class ReactDataGrid extends React.Component {
   };
 
   selectUpdate = (cell: SelectedType) => {
-    const startCell = this.state.selecting.startCell;
+    const startCell = this.state.selecting.startCell || this.state.selected;
     const colIdxs = [startCell.idx, cell.idx].sort((a, b) => a - b);
     const rowIdxs = [startCell.rowIdx, cell.rowIdx].sort((a, b) => a - b);
     const topLeft = {idx: colIdxs[0], rowIdx: rowIdxs[0]};
     const bottomRight = {idx: colIdxs[1], rowIdx: rowIdxs[1]};
-    this.setState({selectedRange: {topLeft, bottomRight}});
+    this.setState({
+      selectedRange: {topLeft, bottomRight},
+      selecting: Object.assign({}, this.state.selecting, {mostRecentCell: cell})
+    });
   };
 
   selectEnd = () => {
     this.setState({selecting: {inProgress: false}});
+  };
+
+  getMostRecentlySelectedCell = () => {
+    if (this.state.selecting.mostRecentCell) {
+      return this.state.selecting.mostRecentCell;
+    } else if (this.state.selecting.startCell) {
+      return this.state.selecting.startCell;
+    }
+
+    return this.state.selected;
+  };
+
+  selectUpdateViaKeyboard = (rowDelta: number, cellDelta: number) => {
+    const mostRecentlySelectedCell = this.getMostRecentlySelectedCell();
+    const newCell = {
+      idx: mostRecentlySelectedCell.idx + cellDelta,
+      rowIdx: mostRecentlySelectedCell.rowIdx + rowDelta
+    };
+    this.selectUpdate(newCell);
   };
 
   onCellMouseDown = (cell: SelectedType) => {
@@ -442,19 +464,35 @@ class ReactDataGrid extends React.Component {
   };
 
   onPressArrowUp = (e: SyntheticEvent) => {
-    this.moveSelectedCell(e, -1, 0);
+    if (isShiftKeyHeldDown(e)) {
+      this.selectUpdateViaKeyboard(-1, 0);
+    } else {
+      this.moveSelectedCell(e, -1, 0);
+    }
   };
 
   onPressArrowDown = (e: SyntheticEvent) => {
-    this.moveSelectedCell(e, 1, 0);
+    if (isShiftKeyHeldDown(e)) {
+      this.selectUpdateViaKeyboard(1, 0);
+    } else {
+      this.moveSelectedCell(e, 1, 0);
+    }
   };
 
   onPressArrowLeft = (e: SyntheticEvent) => {
-    this.moveSelectedCell(e, 0, -1);
+    if (isShiftKeyHeldDown(e)) {
+      this.selectUpdateViaKeyboard(0, -1);
+    } else {
+      this.moveSelectedCell(e, 0, -1);
+    }
   };
 
   onPressArrowRight = (e: SyntheticEvent) => {
-    this.moveSelectedCell(e, 0, 1);
+    if (isShiftKeyHeldDown(e)) {
+      this.selectUpdateViaKeyboard(0, 1);
+    } else {
+      this.moveSelectedCell(e, 0, 1);
+    }
   };
 
   isFocusedOnCell = () => {
@@ -1240,7 +1278,6 @@ class ReactDataGrid extends React.Component {
       rowKey: this.props.rowKey,
       selected: this.state.selected,
       selectedRange: this.state.selectedRange,
-      selecting: this.state.selecting,
       dragged: this.state.dragged,
       hoveredRowIdx: this.state.hoveredRowIdx,
       onCellClick: this.onCellClick,

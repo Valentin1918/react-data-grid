@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 module.exports = {
   selected: PropTypes.object.isRequired,
   selectedRange: PropTypes.object.isRequired,
-  selecting: PropTypes.object,
   copied: PropTypes.object,
   dragged: PropTypes.object,
   onCellClick: PropTypes.func.isRequired,
