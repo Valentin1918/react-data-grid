@@ -1240,6 +1240,7 @@ class ReactDataGrid extends React.Component {
       rowKey: this.props.rowKey,
       selected: this.state.selected,
       selectedRange: this.state.selectedRange,
+      selecting: this.state.selecting,
       dragged: this.state.dragged,
       hoveredRowIdx: this.state.hoveredRowIdx,
       onCellClick: this.onCellClick,
