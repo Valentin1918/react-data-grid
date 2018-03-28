@@ -41,9 +41,16 @@ module.exports = function(stateValues, events) {
       bottomRight: {
         rowIdx: 0,
         idx: 0
+      },
+      startCell: {
+        rowIdx: 0,
+        idx: 0
+      },
+      cursorCell: {
+        rowIdx: 0,
+        idx: 0
       }
     },
-    selecting: { inProgress: false },
     copied: null,
     canFilter: false,
     expandedRows: [],

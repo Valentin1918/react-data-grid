@@ -150,13 +150,13 @@ class ReactDataGrid extends React.Component {
   constructor(props, context) {
     super(props, context);
     let columnMetrics = this.createColumnMetrics();
-    let initialState = {columnMetrics, selectedRows: [], copied: null, expandedRows: [], canFilter: false, columnFilters: {}, sortDirection: null, sortColumn: null, dragged: null, scrollOffset: 0, lastRowIdxUiSelected: -1, selecting: {inProgress: false}};
+    let initialState = {columnMetrics, selectedRows: [], copied: null, expandedRows: [], canFilter: false, columnFilters: {}, sortDirection: null, sortColumn: null, dragged: null, scrollOffset: 0, lastRowIdxUiSelected: -1};
     if (props.enableCellSelect) {
       initialState.selected = {rowIdx: 0, idx: 0};
-      initialState.selectedRange = {topLeft: {rowIdx: 0, idx: 0}, bottomRight: {rowIdx: 0, idx: 0}};
+      initialState.selectedRange = {topLeft: {rowIdx: 0, idx: 0}, bottomRight: {rowIdx: 0, idx: 0}, startCell: {rowIdx: 0, idx: 0}, cursorCell: {rowIdx: 0, idx: 0}};
     } else {
       initialState.selected = {rowIdx: -1, idx: -1};
-      initialState.selectedRange = {topLeft: {rowIdx: -1, idx: -1}, bottomRight: {rowIdx: -1, idx: -1}};
+      initialState.selectedRange = {topLeft: {rowIdx: -1, idx: -1}, bottomRight: {rowIdx: -1, idx: -1}, startCell: {rowIdx: -1, idx: -1}, cursorCell: {rowIdx: -1, idx: -1}};
     }
     this.state = initialState;
   }
@@ -345,11 +345,19 @@ class ReactDataGrid extends React.Component {
     if (this.state.selected.rowIdx !== selected.rowIdx
       || this.state.selected.idx !== selected.idx
       || this.state.selected.active === false) {
-      let idx = selected.idx;
-      let rowIdx = selected.rowIdx;
+      const idx = selected.idx;
+      const rowIdx = selected.rowIdx;
+      const newState = {
+        selected: selected,
+        selectedRange: Object.assign(
+          {},
+          this.state.selectedRange,
+          {topLeft: selected, bottomRight: selected, startCell: selected, cursorCell: selected}
+        )
+      };
       if (this.isCellWithinBounds(selected)) {
         const oldSelection = this.state.selected;
-        this.setState({selected: selected, selectedRange: {topLeft: selected, bottomRight: selected}}, () => {
+        this.setState(newState, () => {
           if (typeof this.props.onCellDeSelected === 'function') {
             this.props.onCellDeSelected(oldSelection);
           }
@@ -359,7 +367,7 @@ class ReactDataGrid extends React.Component {
         });
       } else if (rowIdx === -1 && idx === -1) {
         // When it's outside of the grid, set rowIdx anyway
-        this.setState({selected: { idx, rowIdx }, selectedRange: {topLeft: { idx, rowIdx }, bottomRight: { idx, rowIdx }}});
+        this.setState(newState);
       }
     }
   };
@@ -367,45 +375,37 @@ class ReactDataGrid extends React.Component {
   selectStart = (cell: SelectedType) => {
     // qq check isCellWithinBounds?
     this.setState({
-      selecting: {
-        inProgress: true,
-        startCell: cell
-      },
-      selectedRange: {topLeft: cell, bottomRight: cell}
+      selectedRange: {topLeft: cell, bottomRight: cell, startCell: cell, cursorCell: cell, isDragging: true}
     });
   };
 
   selectUpdate = (cell: SelectedType) => {
-    const startCell = this.state.selecting.startCell || this.state.selected;
+    const startCell = this.state.selectedRange.startCell;
     const colIdxs = [startCell.idx, cell.idx].sort((a, b) => a - b);
     const rowIdxs = [startCell.rowIdx, cell.rowIdx].sort((a, b) => a - b);
     const topLeft = {idx: colIdxs[0], rowIdx: rowIdxs[0]};
     const bottomRight = {idx: colIdxs[1], rowIdx: rowIdxs[1]};
-    this.setState({
-      selectedRange: {topLeft, bottomRight},
-      selecting: Object.assign({}, this.state.selecting, {mostRecentCell: cell})
-    });
+    const selectedRange = Object.assign(
+        // default the startCell to the selected cell, in case we've just started via keyboard
+        {startCell: this.state.selected},
+        // assign the previous state (which will override the startCell if we already have one)
+        this.state.selectedRange,
+        // assign the new state - the bounds of the range, and the new cursor cell
+        {topLeft, bottomRight, cursorCell: cell}
+    );
+    this.setState({selectedRange});
   };
 
   selectEnd = () => {
-    this.setState({selecting: {inProgress: false}});
-  };
-
-  getMostRecentlySelectedCell = () => {
-    if (this.state.selecting.mostRecentCell) {
-      return this.state.selecting.mostRecentCell;
-    } else if (this.state.selecting.startCell) {
-      return this.state.selecting.startCell;
-    }
-
-    return this.state.selected;
+    const selectedRange = Object.assign({}, this.state.selectedRange, {isDragging: false});
+    this.setState({selectedRange});
   };
 
   selectUpdateViaKeyboard = (rowDelta: number, cellDelta: number) => {
-    const mostRecentlySelectedCell = this.getMostRecentlySelectedCell();
+    const cursorCell = this.state.selectedRange.cursorCell;
     const newCell = {
-      idx: mostRecentlySelectedCell.idx + cellDelta,
-      rowIdx: mostRecentlySelectedCell.rowIdx + rowDelta
+      idx: cursorCell.idx + cellDelta,
+      rowIdx: cursorCell.rowIdx + rowDelta
     };
     this.selectUpdate(newCell);
   };
@@ -415,14 +415,14 @@ class ReactDataGrid extends React.Component {
   };
 
   onCellMouseEnter = (cell: SelectedType) => {
-    if (!this.state.selecting.inProgress) {
+    if (!this.state.selectedRange.isDragging) {
       return;
     }
     this.selectUpdate(cell);
   };
 
   onWindowMouseUp = () => {
-    if (!this.state.selecting.inProgress) {
+    if (!this.state.selectedRange.isDragging) {
       this.deselect();
     } else {
       this.selectEnd();
@@ -720,7 +720,8 @@ class ReactDataGrid extends React.Component {
   handleDragStart = (dragged: DraggedType) => {
     if (!this.dragEnabled()) { return; }
     if (this.isCellWithinBounds(dragged)) {
-      this.setState({ dragged: dragged, selecting: {inProgress: false} });
+      const selectedRange = Object.assign({}, this.selectedRange, {isDragging: false});
+      this.setState({ dragged: dragged, selectedRange });
     }
   };
 
