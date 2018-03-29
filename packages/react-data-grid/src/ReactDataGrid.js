@@ -393,7 +393,12 @@ class ReactDataGrid extends React.Component {
         // assign the new state - the bounds of the range, and the new cursor cell
         {topLeft, bottomRight, cursorCell: cell}
     );
-    this.setState({selectedRange});
+    this.setState({
+      selectedRange,
+      // Update the selected cell to the cursor cell; this will cause the Cell to claim focus, which in turn will
+      // cause the browser to ensure it is scrolled into view.
+      selected: cell
+    });
   };
 
   selectEnd = () => {
