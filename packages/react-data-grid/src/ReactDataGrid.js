@@ -412,6 +412,9 @@ class ReactDataGrid extends React.Component {
       idx: cursorCell.idx + cellDelta,
       rowIdx: cursorCell.rowIdx + rowDelta
     };
+    if (!this.isCellWithinBounds(newCell)) {
+      return;
+    }
     this.selectUpdate(newCell);
   };
 
