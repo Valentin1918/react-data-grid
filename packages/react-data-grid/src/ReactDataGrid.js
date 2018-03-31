@@ -728,7 +728,7 @@ class ReactDataGrid extends React.Component {
   handleDragStart = (dragged: DraggedType) => {
     if (!this.dragEnabled()) { return; }
     if (this.isCellWithinBounds(dragged)) {
-      const selectedRange = Object.assign({}, this.selectedRange, {isDragging: false});
+      const selectedRange = Object.assign({}, this.state.selectedRange, {isDragging: false});
       this.setState({ dragged: dragged, selectedRange });
     }
   };
