@@ -91,7 +91,7 @@ class Cell extends React.Component {
       || this.props.height !== nextProps.height
       || this.props.rowIdx !== nextProps.rowIdx
       || this.isCellSelectionChanging(nextProps)
-      || this.isWithinSelectedRangeChanging(nextProps) || true
+      || this.isWithinSelectedRangeChanging(nextProps)
       || this.isDraggedCellChanging(nextProps)
       || this.isCopyCellChanging(nextProps)
       || this.props.isRowSelected !== nextProps.isRowSelected
