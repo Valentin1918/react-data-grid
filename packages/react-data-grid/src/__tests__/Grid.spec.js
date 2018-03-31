@@ -48,7 +48,7 @@ describe('Base Grid Tests', () => {
     minHeight: 600,
     onViewportKeydown: function() {},
     onViewportDragStart: function() {},
-    onViewportDragEnd: function() {},
+    onViewportDragEnd: function() {}
   };
 
   // Configure local letiable replacements for the module.
