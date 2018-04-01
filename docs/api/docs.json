@@ -1568,6 +1568,13 @@
         "required": true,
         "description": ""
       },
+      "onViewportDoubleClick": {
+        "type": {
+          "name": "func"
+        },
+        "required": true,
+        "description": ""
+      },
       "onColumnResize": {
         "type": {
           "name": "func"
@@ -2690,6 +2697,13 @@
             }
           }
         ],
+        "returns": null
+      },
+      {
+        "name": "onViewportDoubleClick",
+        "docblock": null,
+        "modifiers": [],
+        "params": [],
         "returns": null
       },
       {

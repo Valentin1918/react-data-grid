@@ -869,6 +869,11 @@ describe('Grid', function() {
         window.dispatchEvent(evt);
         expect(this.component.state.selected).toEqual(jasmine.objectContaining({ idx: -1, rowIdx: -1 }));
       });
+
+      it('should deselect currently selected cell on double-click', function() {
+        this.getBaseGrid().props.onViewportDoubleClick();
+        expect(this.component.state.selected).toEqual(jasmine.objectContaining({ idx: -1, rowIdx: -1 }));
+      });
     });
   });
 

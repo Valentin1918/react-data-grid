@@ -1357,6 +1357,7 @@ class ReactDataGrid extends React.Component {
             onViewportKeyup={this.onKeyUp}
             onViewportDragStart={this.onDragStart}
             onViewportDragEnd={this.handleDragEnd}
+            onViewportDoubleClick={this.deselect}
             onColumnResize={this.onColumnResize}
             rowScrollTimeout={this.props.rowScrollTimeout}
             scrollToRowIndex={this.props.scrollToRowIndex}
