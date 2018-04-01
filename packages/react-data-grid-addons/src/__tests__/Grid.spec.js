@@ -673,42 +673,42 @@ describe('Grid', function() {
 
       it('Shift + ArrowRight should extend the selected range one column to the right', function() {
         this.simulateGridKeyDown('ArrowRight', false, true);
-        expect(this.component.state.selectedRange).toEqual({
+        expect(this.component.state.selectedRange).toEqual(jasmine.objectContaining({
           topLeft: { idx: 1, rowIdx: 1 },
           bottomRight: { idx: 2, rowIdx: 1 },
           startCell: { idx: 1, rowIdx: 1 },
           cursorCell: { idx: 2, rowIdx: 1 }
-        });
+        }));
       });
 
       it('Shift + ArrowDown should extend the selected range one row down', function() {
         this.simulateGridKeyDown('ArrowDown', false, true);
-        expect(this.component.state.selectedRange).toEqual({
+        expect(this.component.state.selectedRange).toEqual(jasmine.objectContaining({
           topLeft: { idx: 1, rowIdx: 1 },
           bottomRight: { idx: 1, rowIdx: 2 },
           startCell: { idx: 1, rowIdx: 1 },
           cursorCell: { idx: 1, rowIdx: 2 }
-        });
+        }));
       });
 
       it('Shift + ArrowLeft should extend the selected range one column to the left', function() {
         this.simulateGridKeyDown('ArrowLeft', false, true);
-        expect(this.component.state.selectedRange).toEqual({
+        expect(this.component.state.selectedRange).toEqual(jasmine.objectContaining({
           topLeft: { idx: 0, rowIdx: 1 },
           bottomRight: { idx: 1, rowIdx: 1 },
           startCell: { idx: 1, rowIdx: 1 },
           cursorCell: { idx: 0, rowIdx: 1 }
-        });
+        }));
       });
 
       it('Shift + ArrowUp should extend the selected range one row up', function() {
         this.simulateGridKeyDown('ArrowUp', false, true);
-        expect(this.component.state.selectedRange).toEqual({
+        expect(this.component.state.selectedRange).toEqual(jasmine.objectContaining({
           topLeft: { idx: 1, rowIdx: 0 },
           bottomRight: { idx: 1, rowIdx: 1 },
           startCell: { idx: 1, rowIdx: 1 },
           cursorCell: { idx: 1, rowIdx: 0 }
-        });
+        }));
       });
 
       it('extending the selected range via the keyboard should update the selected cell to the cell nagivated to', function() {

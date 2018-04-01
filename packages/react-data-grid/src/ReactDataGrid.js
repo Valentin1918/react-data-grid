@@ -80,6 +80,9 @@ class ReactDataGrid extends React.Component {
     onCellSelected: PropTypes.func,
     onCellDeSelected: PropTypes.func,
     onCellExpand: PropTypes.func,
+    onCellRangeSelectionStarted: PropTypes.func,
+    onCellRangeSelectionUpdated: PropTypes.func,
+    onCellRangeSelectionCompleted: PropTypes.func,
     enableDragAndDrop: PropTypes.bool,
     tabIndex: PropTypes.number,
     onRowExpandToggle: PropTypes.func,
@@ -376,10 +379,14 @@ class ReactDataGrid extends React.Component {
     // qq check isCellWithinBounds?
     this.setState({
       selectedRange: {topLeft: cell, bottomRight: cell, startCell: cell, cursorCell: cell, isDragging: true}
+    }, () => {
+      if (typeof this.props.onCellRangeSelectionStarted === 'function') {
+        this.props.onCellRangeSelectionStarted(this.state.selectedRange);
+      }
     });
   };
 
-  selectUpdate = (cell: SelectedType) => {
+  selectUpdate = (cell: SelectedType, callback) => {
     const startCell = this.state.selectedRange.startCell;
     const colIdxs = [startCell.idx, cell.idx].sort((a, b) => a - b);
     const rowIdxs = [startCell.rowIdx, cell.rowIdx].sort((a, b) => a - b);
@@ -398,12 +405,23 @@ class ReactDataGrid extends React.Component {
       // Update the selected cell to the cursor cell; this will cause the Cell to claim focus, which in turn will
       // cause the browser to ensure it is scrolled into view.
       selected: cell
+    }, () => {
+      if (typeof this.props.onCellRangeSelectionUpdated === 'function') {
+        this.props.onCellRangeSelectionUpdated(this.state.selectedRange);
+      }
+      if (typeof callback === 'function') {
+        callback();
+      }
     });
   };
 
   selectEnd = () => {
     const selectedRange = Object.assign({}, this.state.selectedRange, {isDragging: false});
-    this.setState({selectedRange});
+    this.setState({selectedRange}, () => {
+      if (typeof this.props.onCellRangeSelectionCompleted === 'function') {
+        this.props.onCellRangeSelectionCompleted(this.state.selectedRange);
+      }
+    });
   };
 
   selectUpdateViaKeyboard = (rowDelta: number, cellDelta: number) => {
@@ -415,7 +433,7 @@ class ReactDataGrid extends React.Component {
     if (!this.isCellWithinBounds(newCell)) {
       return;
     }
-    this.selectUpdate(newCell);
+    this.selectUpdate(newCell, () => { this.selectEnd() });
   };
 
   onCellMouseDown = (cell: SelectedType) => {
@@ -1182,7 +1200,6 @@ class ReactDataGrid extends React.Component {
       if (typeof this.props.onCellDeSelected === 'function') {
         this.props.onCellDeSelected(oldSelection);
       }
-      // qq fire similar event for range deselected?
     });
   };
 
